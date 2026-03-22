@@ -1,9 +1,9 @@
-import { LCD, clear, text, intersects, makeBaseGame } from '../game-utils.js';
+import { LCD, clear, text, makeBaseGame } from '../game-utils.js';
 
 export default makeBaseGame({
   id: 'snake',
   title: 'Snake',
-  help: 'Eat pellets, grow longer, avoid walls and yourself.',
+  help: 'Eat pellets, grow longer, and avoid your own body. This version wraps around the edges.',
   controls: ['Arrow keys = move', 'Enter = start', 'R = restart', 'Esc = quit'],
   create() {
     this.cell = 16;
@@ -35,8 +35,16 @@ export default makeBaseGame({
     this.moveTimer = 0;
     this.dir = this.nextDir;
 
-    const head = { x: this.snake[0].x + this.dir.x, y: this.snake[0].y + this.dir.y };
-    if (head.x < 0 || head.y < 0 || head.x >= this.cols || head.y >= this.rows || this.snake.some(s => s.x === head.x && s.y === head.y)) {
+    const head = {
+      x: (this.snake[0].x + this.dir.x + this.cols) % this.cols,
+      y: (this.snake[0].y + this.dir.y + this.rows) % this.rows
+    };
+    const tail = this.snake[this.snake.length - 1];
+    const hitsBody = this.snake.some((s, index) => {
+      const isTailLeaving = index === this.snake.length - 1 && head.x === tail.x && head.y === tail.y && !(head.x === this.food.x && head.y === this.food.y);
+      return !isTailLeaving && s.x === head.x && s.y === head.y;
+    });
+    if (hitsBody) {
       this.state = 'over';
       this.app.audio.bad();
       return;

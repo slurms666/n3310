@@ -124,6 +124,7 @@ class App {
     this.gameView.setAttribute('aria-hidden', 'false');
     this.menuView.setAttribute('aria-hidden', 'true');
     this.updateHeader(this.activeGame.title, 'Esc = Quit  |  R = Restart');
+    this.activeGame.draw?.(this.ctx);
     this.showGameHelp();
   }
 
@@ -134,10 +135,19 @@ class App {
       <h3>${this.activeGame.title}</h3>
       <p>${this.activeGame.help}</p>
       <ul>${controls}</ul>
-      <p class="overlay-actions">Press Enter to start. Esc returns to the menu.</p>
+      <p class="overlay-actions">Press Enter or Space to begin. Esc returns to the menu.</p>
     `;
     this.overlay.classList.remove('hidden');
     this.overlay.dataset.mode = 'help';
+  }
+
+  startActiveGame() {
+    if (!this.activeGame) return;
+    this.input.enterPressed = false;
+    this.input.spacePressed = false;
+    if (this.activeGame.state === 'ready') this.activeGame.state = 'play';
+    if (typeof this.activeGame.onStart === 'function') this.activeGame.onStart();
+    this.hideOverlay();
   }
 
   hideOverlay() {
@@ -148,6 +158,7 @@ class App {
   restartGame() {
     if (!this.activeGame) return;
     this.activeGame.restart();
+    this.activeGame.draw?.(this.ctx);
     this.showGameHelp();
   }
 
@@ -173,8 +184,7 @@ class App {
 
     if (this.activeGame) {
       if (!this.overlay.classList.contains('hidden') && (key === 'Enter' || key === ' ')) {
-        this.hideOverlay();
-        if (this.activeGame.state === 'ready') this.activeGame.state = 'play';
+        this.startActiveGame();
         return;
       }
       if (key === 'Escape' || key === 'Backspace') {
