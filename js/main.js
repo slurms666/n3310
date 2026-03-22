@@ -141,13 +141,15 @@ class App {
     this.overlay.dataset.mode = 'help';
   }
 
-  startActiveGame() {
+  startActiveGame(triggerKey = 'Enter') {
     if (!this.activeGame) return;
     this.input.enterPressed = false;
     this.input.spacePressed = false;
     if (this.activeGame.state === 'ready') this.activeGame.state = 'play';
-    if (typeof this.activeGame.onStart === 'function') this.activeGame.onStart();
     this.hideOverlay();
+    if (typeof this.activeGame.onStart === 'function') this.activeGame.onStart(triggerKey);
+    else if (typeof this.activeGame.onKeyDown === 'function') this.activeGame.onKeyDown(triggerKey);
+    this.activeGame.draw?.(this.ctx);
   }
 
   hideOverlay() {
@@ -184,7 +186,7 @@ class App {
 
     if (this.activeGame) {
       if (!this.overlay.classList.contains('hidden') && (key === 'Enter' || key === ' ')) {
-        this.startActiveGame();
+        this.startActiveGame(key);
         return;
       }
       if (key === 'Escape' || key === 'Backspace') {
